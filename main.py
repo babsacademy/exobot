@@ -24,45 +24,26 @@ CREATE TABLE IF NOT EXISTS articles (
 urls = ["https://wiwsport.com/wp-json/wp/v2/posts?embed", "https://senego.com/wp-json/wp/v2/posts?embed","https://www.senenews.com/wp-json/wp/v2/posts?embed"]
 
 for url in urls:
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-
-        data = response.json()
-
-        new_articles = []
-
-        for article in data:
-            cursor = conn.execute("SELECT * FROM articles WHERE slug=?", (article["slug"],))
-            existing_article = cursor.fetchone()
-            if existing_article is None:
-                if "_embedded" in article and "wp:featuredmedia" in article["_embedded"]:
-
-                    photo_url = article["_embedded"]["wp:featuredmedia"][0]["source_url"]
-                else:
-
-                    photo_url = None
-
-                article_data = {
-                    "title": article["title"]["rendered"],
-                    "content": article["content"]["rendered"],
-                    "slug": article["slug"],
-                    "photo": photo_url,
-                    "date": article["date"],
-                    "link": article["link"],
-                    "site": url
-                }
-                new_articles.append(article_data)
-
-
-                conn.execute("""
-                INSERT INTO articles (title, content, slug, photo, date, link, site)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (article_data["title"], article_data["content"], article_data["slug"], article_data["photo"], article_data["date"], article_data["link"], article_data["site"]))
+    site = url.split('/')[2]
+    r = requests.get(url, headers=headers)
+    data = json.loads(r.text)
+    
+    for post in data:
+        title = post['title']['rendered']
+        content = post['content']['rendered']
+        slug = post['slug']
+        
+        if '_embedded' in post and 'wp:featuredmedia' in post['_embedded']:
+            photo = post['_embedded']['wp:featuredmedia'][0]['source_url']
+        else:
+            photo = 'https://via.placeholder.com/150'
+            
+        date = post['date']
+        link = post['link']
+        
+        conn.execute("INSERT INTO articles (title, content, slug, photo, date, link, site) VALUES (?, ?, ?, ?, ?, ?, ?)", (title, content, slug, photo, date, link, site))
         conn.commit()
-
-        print(f"{len(new_articles)} nouveaux articles ajoutés.")
-    else:
-        print("Erreur de requête HTTP : le code de statut est {}".format(response.status_code))
+    
+    print(f"Les données du site {site} ont été insérées dans la base de données avec succès.")
 
 conn.close()
