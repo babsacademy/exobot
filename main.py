@@ -1,4 +1,3 @@
-
 import sqlite3
 import requests
 import json
@@ -17,7 +16,8 @@ CREATE TABLE IF NOT EXISTS articles (
     slug TEXT,
     photo TEXT,
     date TEXT,
-    link TEXT
+    link TEXT,
+    site TEXT
 )
 """)
 
@@ -49,15 +49,16 @@ for url in urls:
                     "slug": article["slug"],
                     "photo": photo_url,
                     "date": article["date"],
-                    "link": article["link"]
+                    "link": article["link"],
+                    "site": url
                 }
                 new_articles.append(article_data)
 
 
                 conn.execute("""
-                INSERT INTO articles (title, content, slug, photo, date, link)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """, (article_data["title"], article_data["content"], article_data["slug"], article_data["photo"], article_data["date"], article_data["link"]))
+                INSERT INTO articles (title, content, slug, photo, date, link, site)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (article_data["title"], article_data["content"], article_data["slug"], article_data["photo"], article_data["date"], article_data["link"], article_data["site"]))
         conn.commit()
 
         print(f"{len(new_articles)} nouveaux articles ajoutés.")
