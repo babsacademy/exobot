@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS articles (
 )
 """)
 
-urls = ["https://wiwsport.com/wp-json/wp/v2/posts?embed", "https://senego.com/wp-json/wp/v2/posts?embed"]
+urls = ["https://wiwsport.com/wp-json/wp/v2/posts?embed", "https://senego.com/wp-json/wp/v2/posts?embed","https://www.senenews.com/wp-json/wp/v2/posts?embed"]
 
 for url in urls:
     response = requests.get(url, headers=headers)
