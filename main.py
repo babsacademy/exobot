@@ -38,23 +38,29 @@ for url in urls:
             cursor = conn.execute("SELECT * FROM articles WHERE slug=? AND site_name=?", (article["slug"], url,))
             existing_article = cursor.fetchone()
             if existing_article is None:
-                if "_embedded" in article and "wp:featuredmedia" in article["_embedded"]:
-
-                    photo_url = article["_embedded"]["wp:featuredmedia"][0]["source_url"]
-                else:
-
-                    photo_url = None
-
+                photo_url = None
+                if "better_featured_image" in article:
+                    photo_url = article["better_featured_image"]["source_url"]
+                elif "featured_media" in article["_links"]:
+                    media_url = article["_links"]["wp:featuredmedia"][0]["href"]
+                    media_response = requests.get(media_url, headers=headers)
+                    if media_response.status_code == 200:
+                        media_data = media_response.json()
+                        photo_url = media_data["source_url"]
+                
+                if not photo_url:
+                    # no photo found, use placeholder image
+                    photo_url = "https://firebasestorage.googleapis.com/v0/b/dakarois221-94a4b.appspot.com/o/images%2F_2ab23759-756f-424a-a7be-10ddb876370a.jpeg?alt=media&token=1cd4e1c0-0b04-4aa1-9952-43d9cc6efcb7"
+                
                 # Formatting the date
                 article_date = datetime.strptime(article["date"], '%Y-%m-%dT%H:%M:%S')
                 formatted_date = article_date.strftime('%d/%m/%Y %H:%M')
 
                 # Encoding the title and removing "&#8230" from the title
                 encoded_title = article["title"]["rendered"].encode('ascii', 'ignore').decode()
-                clean_title = re.sub(r'&#8230;', '', encoded_title)
 
                 article_data = {
-                    "title": clean_title,
+                    "title": encoded_title,
                     "content": re.sub(r'<video.*?>.*?</video>', '', article["content"]["rendered"], flags=re.DOTALL),
                     "slug": article["slug"],
                     "photo": photo_url,
