@@ -1,14 +1,12 @@
-import sqlite3
 import requests
 import json
 import re
 from datetime import datetime
+from database import conn
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0"
 }
-
-conn = sqlite3.connect("articles.db")
 
 conn.execute("""
 CREATE TABLE IF NOT EXISTS articles (
@@ -77,7 +75,3 @@ for url in urls:
         conn.commit()
 
         print(f"{len(new_articles)} nouveaux articles ajoutés pour le site {url}.")
-    else:
-        print("Erreur de requête HTTP : le code de statut est {}".format(response.status_code))
-
-conn.close()
