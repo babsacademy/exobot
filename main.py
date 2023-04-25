@@ -3,6 +3,7 @@ import json
 import re
 from datetime import datetime
 from database import conn
+import html
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0"
@@ -21,7 +22,7 @@ CREATE TABLE IF NOT EXISTS articles (
 )
 """)
 
-urls = ["https://wiwsport.com/wp-json/wp/v2/posts?embed", "https://senego.com/wp-json/wp/v2/posts?embed", "https://www.senenews.com/wp-json/wp/v2/posts?embed"]
+urls = ["https://wiwsport.com/wp-json/wp/v2/posts?embed", "https://senego.com/wp-json/wp/v2/posts?embed", "https://www.senenews.com/wp-json/wp/v2/posts?embed","https://aps.sn/wp-json/wp/v2/posts?embed"]
 
 for url in urls:
     response = requests.get(url, headers=headers)
@@ -55,7 +56,7 @@ for url in urls:
                 formatted_date = article_date.strftime('%d/%m/%Y %H:%M')
 
                 # Encoding the title and removing "&#8230" from the title
-                encoded_title = article["title"]["rendered"].encode('ascii', 'ignore').decode()
+                encoded_title = html.unescape(article["title"]["rendered"])
 
                 article_data = {
                     "title": encoded_title,
