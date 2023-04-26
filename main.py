@@ -22,9 +22,14 @@ CREATE TABLE IF NOT EXISTS articles (
 )
 """)
 
-urls = ["https://wiwsport.com/wp-json/wp/v2/posts?embed", "https://senego.com/wp-json/wp/v2/posts?embed", "https://www.senenews.com/wp-json/wp/v2/posts?embed","https://aps.sn/wp-json/wp/v2/posts?embed"]
+urls = {
+    "wiwsport": "https://wiwsport.com/wp-json/wp/v2/posts?embed",
+    "senego": "https://senego.com/wp-json/wp/v2/posts?embed",
+    "senenews": "https://www.senenews.com/wp-json/wp/v2/posts?embed",
+    "aps": "https://aps.sn/wp-json/wp/v2/posts?embed","xalimasn":"https://www.xalimasn.com/wp-json/wp/v2/posts?embed",
+}
 
-for url in urls:
+for site_name, url in urls.items():
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
@@ -34,7 +39,7 @@ for url in urls:
         new_articles = []
 
         for article in data:
-            cursor = conn.execute("SELECT * FROM articles WHERE slug=? AND site_name=?", (article["slug"], url,))
+            cursor = conn.execute("SELECT * FROM articles WHERE slug=? AND site_name=?", (article["slug"], site_name,))
             existing_article = cursor.fetchone()
             if existing_article is None:
                 photo_url = None
@@ -65,7 +70,7 @@ for url in urls:
                     "photo": photo_url,
                     "date": formatted_date,
                     "link": article["link"],
-                    "site_name": url
+                    "site_name": site_name
                 }
                 new_articles.append(article_data)
 
@@ -74,5 +79,4 @@ for url in urls:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, (article_data["title"], article_data["content"], article_data["slug"], article_data["photo"], article_data["date"], article_data["link"], article_data["site_name"]))
         conn.commit()
-
         print(f"{len(new_articles)} nouveaux articles ajoutés pour le site {url}.")
